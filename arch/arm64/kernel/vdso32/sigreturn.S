@@ -25,6 +25,8 @@
 #include <asm/asm-offsets.h>
 #include <asm/unistd32.h>
 
+.section .note.GNU-stack,"",%progbits
+
 .macro sigreturn_trampoline name, syscall, regs_offset
 	/*
 	 * We provide directives for enabling stack unwinding through the
