@@ -111,7 +111,6 @@ static int ovl_getattr(struct vfsmount *mnt, struct dentry *dentry,
 	struct path realpath;
 	const struct cred *old_cred;
 	int err;
-
 	ovl_path_real(dentry, &realpath);
 	old_cred = ovl_override_creds(dentry->d_sb);
 	err = vfs_getattr(&realpath, stat);
