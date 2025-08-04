@@ -1,0 +1,144 @@
+name: 编译内核
+
+on:
+  push:
+    branches:
+      - dev/*
+  workflow_dispatch:
+
+env:
+  AOSP_TOOLCHAIN_BRANCH: android16
+  AOSP_CLANG_VERSION: r547379
+
+jobs:
+  build:
+    name: 编译内核
+    permissions: { contents: write }
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device:
+          - beryllium
+          - dipper
+          - equuleus
+          - perseus
+          - polaris
+          - ursa
+    steps:
+      - name: 安装软件包
+        env:
+          PACKAGES:
+            ccache
+        run: |
+          sudo apt update > /dev/null
+          sudo apt install -y ${{ env.PACKAGES }} > /dev/null
+
+      - name: 同步仓库
+        uses: actions/checkout@v4
+        with:
+          path: kernel
+          submodules: true
+
+      - name: 缓存Clang
+        id: cache-clang
+        uses: actions/cache@v4
+        with:
+          path: clang
+          key: clang-${{ env.AOSP_TOOLCHAIN_BRANCH }}-${{ env.AOSP_CLANG_VERSION }}
+
+      - name: 下载Clang
+        if: steps.cache-clang.outputs.cache-hit != 'true'
+        run:
+          mkdir -p clang &&
+          curl -LSs "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/${{ env.AOSP_TOOLCHAIN_BRANCH }}-release/clang-${{ env.AOSP_CLANG_VERSION }}.tar.gz" |
+          tar xz -C clang
+
+      - name: 缓存ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: kernel-${{ matrix.device }}
+          restore-keys: kernel-${{ matrix.device }}
+          max-size: 5G
+
+      - name: 编译
+        working-directory: kernel
+        env:
+          MAKE_ARGS:
+            -sj$(nproc --all) CC="ccache clang"
+          CONFIG_FILES:
+            mi845_defconfig
+            ${{ matrix.device }}.config
+        run: |
+          export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+          make ${{ env.MAKE_ARGS }} ${{ env.CONFIG_FILES }} all
+
+      - name: 打包
+        run: |
+          git clone https://github.com/osm0sis/AnyKernel3 --depth=1 ak3
+          cp kernel/out/arch/arm64/boot/Image.gz-dtb ak3/
+          cd ak3
+          cat >anykernel.sh <<EOF
+          properties() { '
+          kernel.string=Kernel for ${{ matrix.device }}
+          device.name1=${{ matrix.device }}
+          do.devicecheck=1
+          '; }
+          ramdisk_compression=auto
+          patch_vbmeta_flag=auto
+          is_slot_device=auto
+          block=auto
+          . tools/ak3-core.sh
+          split_boot
+          flash_boot
+          EOF
+          zip -qr9 Anykernel3-${{ matrix.device }}.zip * -x .git .github README.md *placeholder
+
+      - name: 上传文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-${{ matrix.device }}
+          path: ak3/Anykernel3-${{ matrix.device }}.zip
+
+  release:
+    name: 发布
+    permissions: { contents: write }
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 获取构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: kernel
+          pattern: kernel-*
+          merge-multiple: true
+
+      - name: 获取当前时间
+        id: time
+        run: echo "time_now=UTC$(date -u +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
+
+      - name: 下载ci管理器
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          repo: rsuntk/KernelSU
+          name: manager
+          workflow: build-manager.yml
+          path: manager
+
+      - name: 删除旧的release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete debug --repo ${{ github.repository }} --cleanup-tag
+
+      - name: 发布
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: debug
+          name: Kernel build ${{ steps.time.outputs.time_now }}
+          prerelease: true
+          files: |
+            kernel/Anykernel3-*.zip
+            manager/*
+
