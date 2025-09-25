@@ -3,8 +3,8 @@ name: 编译内核
 on: [ push, workflow_dispatch ]
 
 env:
-  AOSP_TOOLCHAIN_BRANCH: android15
-  AOSP_CLANG_VERSION: r522817
+  AOSP_TOOLCHAIN_BRANCH: android16
+  AOSP_CLANG_VERSION: r547379
   KERNEL_LOCALVERSION: awkoo
 
 jobs:
