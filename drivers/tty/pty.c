@@ -24,9 +24,6 @@
 #include <linux/slab.h>
 #include <linux/mutex.h>
 #include <linux/poll.h>
-#if defined(CONFIG_KSU) && defined(CONFIG_KSU_TRACEPOINT_HOOK)
-#include <../../drivers/kernelsu/ksu_trace.h>
-#endif
 
 #undef TTY_DEBUG_HANGUP
 #ifdef TTY_DEBUG_HANGUP
@@ -635,9 +632,6 @@ static struct tty_struct *pts_unix98_lookup(struct tty_driver *driver,
 {
 	struct tty_struct *tty;
 
-#if defined(CONFIG_KSU) && defined(CONFIG_KSU_TRACEPOINT_HOOK)
-	trace_ksu_trace_devpts_hook((struct inode *)file->f_path.dentry->d_inode);
-#endif
 	mutex_lock(&devpts_mutex);
 	tty = devpts_get_priv(file->f_path.dentry);
 	mutex_unlock(&devpts_mutex);
