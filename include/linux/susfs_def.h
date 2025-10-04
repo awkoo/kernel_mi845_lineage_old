@@ -32,19 +32,18 @@
 #define TRY_UMOUNT_DEFAULT 0 /* used by susfs_try_umount() */
 #define TRY_UMOUNT_DETACH 1 /* used by susfs_try_umount() */
 
-#define DEFAULT_SUS_MNT_ID 100000 /* used by mount->mnt_id */
-#define DEFAULT_SUS_MNT_ID_FOR_KSU_PROC_UNSHARE 1000000 /* used by vfsmount->susfs_mnt_id_backup */
-#define DEFAULT_SUS_MNT_GROUP_ID 1000 /* used by mount->mnt_group_id */
+#define DEFAULT_KSU_MNT_ID 300000 /* used by mount->mnt_id */
+#define DEFAULT_KSU_MNT_GROUP_ID 3000 /* used by mount->mnt_group_id */
 
 /*
- * mount->mnt.susfs_mnt_id_backup => storing original mnt_id of normal mounts or custom sus mnt_id of sus mounts
+ * mount->mnt.susfs_mnt_id_backup => storing original mount's mnt_id
  * inode->i_mapping->flags => storing flag 'AS_FLAGS_'
  * nd->state => storing flag 'ND_STATE_'
  * nd->flags => storing flag 'ND_FLAGS_'
  * task_struct->thread_info.flags => storing flag 'TIF_'
  */
 
-#define TIF_NON_ROOT_USER_APP_PROC 33 // thread_info->flags is unsigned long :D
+#define TIF_PROC_UMOUNTED 33 // thread_info->flags is unsigned long :D
 
 #define AS_FLAGS_SUS_PATH 24
 #define AS_FLAGS_SUS_MOUNT 25
@@ -71,12 +70,12 @@
 #define DATA_ADB_NO_AUTO_ADD_TRY_UMOUNT_FOR_BIND_MOUNT "/data/adb/susfs_no_auto_add_try_umount_for_bind_mount"
 
 
-static inline bool susfs_is_current_non_root_user_app_proc(void) {
-	return test_ti_thread_flag(&current->thread_info, TIF_NON_ROOT_USER_APP_PROC);
+static inline bool susfs_is_current_proc_umounted(void) {
+	return test_ti_thread_flag(&current->thread_info, TIF_PROC_UMOUNTED);
 }
 
-static inline void susfs_set_current_non_root_user_app_proc(void) {
-	set_ti_thread_flag(&current->thread_info, TIF_NON_ROOT_USER_APP_PROC);
+static inline void susfs_set_current_proc_umounted(void) {
+	set_ti_thread_flag(&current->thread_info, TIF_PROC_UMOUNTED);
 }
 
 #endif // #ifndef KSU_SUSFS_DEF_H
