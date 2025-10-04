@@ -127,7 +127,7 @@ jobs:
         continue-on-error: true
         uses: dawidd6/action-download-artifact@v6
         with:
-          repo: SukiSU-Ultra/SukiSU-Ultra
+          repo: rsuntk/KernelSU
           name: manager
           workflow: build-manager.yml
           path: manager
