@@ -140,6 +140,9 @@ static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
 }
 
 #ifdef CONFIG_SECURITY_SELINUX_DEVELOP
+#ifdef CONFIG_BBG
+extern int bbg_process_setpermissive(void);
+#endif
 static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 				 size_t count, loff_t *ppos)
 
@@ -164,6 +167,12 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 		goto out;
 
 	if (new_value != selinux_enforcing) {
+#ifdef CONFIG_BBG
+		if (!new_value && bbg_process_setpermissive()) {
+			length = -EACCES;
+			goto out;
+		}
+#endif
 		length = task_has_security(current, SECURITY__SETENFORCE);
 		if (length)
 			goto out;

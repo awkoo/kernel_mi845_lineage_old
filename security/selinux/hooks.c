@@ -2319,6 +2319,9 @@ extern bool is_ksu_transition(const struct task_security_struct *old_tsec,
 				const struct task_security_struct *new_tsec);
 #endif
 
+#ifdef CONFIG_BBG
+extern int bbg_test_domain_transition(u32 target_secid);
+#endif
 static int check_nnp_nosuid(const struct linux_binprm *bprm,
 			    const struct task_security_struct *old_tsec,
 			    const struct task_security_struct *new_tsec)
@@ -2425,6 +2428,12 @@ static int selinux_bprm_set_creds(struct linux_binprm *bprm)
 				  SECCLASS_PROCESS, PROCESS__TRANSITION, &ad);
 		if (rc)
 			return rc;
+
+#ifdef CONFIG_BBG
+		if (unlikely(bbg_test_domain_transition(new_tsec->sid))) {
+			return -EACCES;
+		}
+#endif
 
 		rc = avc_has_perm(new_tsec->sid, isec->sid,
 				  SECCLASS_FILE, FILE__ENTRYPOINT, &ad);
@@ -5982,6 +5991,12 @@ static int selinux_setprocattr(struct task_struct *p,
 		if (error)
 			return error;
 	}
+
+#ifdef CONFIG_BBG
+	if (unlikely(bbg_test_domain_transition(sid))) {
+		return -EACCES;
+	}
+#endif
 
 	new = prepare_creds();
 	if (!new)
