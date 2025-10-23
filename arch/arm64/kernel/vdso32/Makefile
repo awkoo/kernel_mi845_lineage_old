@@ -4,11 +4,7 @@
 # Author: Kevin Brodsky <kevin.brodsky@arm.com>
 # A mix between the arm64 and arm vDSO Makefiles.
 
-ifeq ($(cc-name),clang)
-  CC_ARM32 := $(CC) $(CLANG_TARGET_ARM32) $(CLANG_GCC32_TC) $(CLANG_PREFIX32)
-else
-  CC_ARM32 := $(CROSS_COMPILE_ARM32)$(cc-name)
-endif
+CC_ARM32 := $(CC) --target=arm-linux-gnueabi
 
 # Same as cc-*option, but using CC_ARM32 instead of CC
 cc32-option = $(call try-run,\
