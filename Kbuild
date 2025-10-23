@@ -60,20 +60,7 @@ $(obj)/$(offsets-file): arch/$(SRCARCH)/kernel/asm-offsets.s FORCE
 	$(call filechk,offsets,__ASM_OFFSETS_H__)
 
 #####
-# 4) Check for missing system calls
-#
-
-always += missing-syscalls
-targets += missing-syscalls
-
-quiet_cmd_syscalls = CALL    $<
-      cmd_syscalls = $(CONFIG_SHELL) $< $(CC) $(c_flags) $(missing_syscalls_flags)
-
-missing-syscalls: scripts/checksyscalls.sh $(offsets-file) FORCE
-	$(call cmd,syscalls)
-
-#####
-# 5) Generate constants for Python GDB integration
+# 4) Generate constants for Python GDB integration
 #
 
 extra-$(CONFIG_GDB_SCRIPTS) += build_constants_py
