@@ -28,8 +28,12 @@ menuconfig RAS
 	  so have ideal availability, but may be unreliable, with frequent
 	  data corruption.
 
-if RAS
+config MCE_AMD_INJ
+	tristate "Simple MCE injection interface for AMD processors"
+	depends on RAS && EDAC_DECODE_MCE && DEBUG_FS && AMD_NB
+	default n
+	help
+	  This is a simple debugfs interface to inject MCEs and test different
+	  aspects of the MCE handling code.
 
-source arch/x86/ras/Kconfig
-
-endif
+	  WARNING: Do not even assume this interface is staying stable!
