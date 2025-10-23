@@ -242,8 +242,8 @@ CONFIG_SHELL := sh
 
 HOSTCC       = clang
 HOSTCXX      = clang++
-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer -std=gnu89 \
-		-Wno-unused-value -Wno-unused-parameter -Wno-missing-field-initializers
+HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes \
+		-O3 -fomit-frame-pointer -std=gnu11
 HOSTCXXFLAGS = -O3
 
 # Decide whether to build built-in, modular, or both.
@@ -296,7 +296,7 @@ PYTHON		= python
 CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
-		  -Wbitwise -Wno-return-void $(CF)
+		  -Wbitwise -Wno-return-void -Wno-unknown-attribute $(CF)
 NOSTDINC_FLAGS  =
 CFLAGS_MODULE   =
 AFLAGS_MODULE   =
@@ -320,16 +320,15 @@ LINUXINCLUDE    := \
 		-I$(objtree)/arch/$(SRCARCH)/include/generated/uapi \
 		-I$(objtree)/arch/$(SRCARCH)/include/generated \
 		$(if $(KBUILD_SRC), -I$(srctree)/include) \
-		-I$(objtree)/include
+		-I$(objtree)/include \
+		$(USERINCLUDE)
 
-LINUXINCLUDE	+= $(filter-out $(LINUXINCLUDE),$(USERINCLUDE))
-
-KBUILD_AFLAGS   := -D__ASSEMBLY__
-KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-		   -fno-strict-aliasing -fno-common -fshort-wchar \
-		   -Werror-implicit-function-declaration \
-		   -Wno-format-security \
-		   -std=gnu89
+KBUILD_AFLAGS   := -D__ASSEMBLY__ -fno-PIE
+KBUILD_CFLAGS   := -Wall -Wundef -Werror=strict-prototypes -Wno-trigraphs \
+		   -fno-strict-aliasing -fno-common -fshort-wchar -fno-PIE \
+		   -Werror=implicit-function-declaration -Werror=implicit-int \
+		   -Werror=return-type -Wno-format-security \
+		   -std=gnu11
 KBUILD_CPPFLAGS := -D__KERNEL__
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
