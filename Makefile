@@ -569,8 +569,7 @@ LDFINAL_vmlinux := $(LD)
 # use llvm-ar for building symbol tables from IR files, and llvm-dis instead
 # of objdump for processing symbol versions and exports
 LLVM_AR		:= llvm-ar
-LLVM_DIS	:= llvm-dis
-export LLVM_AR LLVM_DIS
+export LLVM_AR
 endif
 
 # The arch Makefile can set ARCH_{CPP,A,C}FLAGS to override the default
