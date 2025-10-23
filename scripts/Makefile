@@ -31,7 +31,7 @@ HOSTLOADLIBES_sign-file = $(CRYPTO_LIBS)
 HOSTCFLAGS_extract-cert.o = $(CRYPTO_CFLAGS)
 HOSTLOADLIBES_extract-cert = $(CRYPTO_LIBS)
 
-always		:= $(hostprogs-y) $(hostprogs-m)
+always		:= $(hostprogs-y)
 
 # The following hostprogs-y programs are only build on demand
 hostprogs-y += unifdef docproc check-lc_ctype
