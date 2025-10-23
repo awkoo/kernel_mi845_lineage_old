@@ -40,22 +40,13 @@ host-cxxmulti	:= $(foreach m,$(hostprogs-y),$(if $($(m)-cxxobjs),$(m)))
 # C++ Object (.o) files compiled from .cc files
 host-cxxobjs	:= $(sort $(foreach m,$(host-cxxmulti),$($(m)-cxxobjs)))
 
-# output directory for programs/.o files
-# hostprogs-y := tools/build may have been specified.
-# Retrieve also directory of .o files from prog-objs or prog-cxxobjs notation
-host-objdirs := $(dir $(__hostprogs) $(host-cobjs) $(host-cxxobjs))
-
-host-objdirs := $(strip $(sort $(filter-out ./,$(host-objdirs))))
-
 
 host-csingle	:= $(addprefix $(obj)/,$(host-csingle))
 host-cmulti	:= $(addprefix $(obj)/,$(host-cmulti))
 host-cobjs	:= $(addprefix $(obj)/,$(host-cobjs))
 host-cxxmulti	:= $(addprefix $(obj)/,$(host-cxxmulti))
 host-cxxobjs	:= $(addprefix $(obj)/,$(host-cxxobjs))
-host-objdirs    := $(addprefix $(obj)/,$(host-objdirs))
 
-obj-dirs += $(host-objdirs)
 
 #####
 # Handle options to gcc. Support building with separate output directory
