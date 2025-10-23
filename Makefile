@@ -114,6 +114,7 @@ ifeq ($(KBUILD_SRC),)
 ifeq ("$(origin O)", "command line")
   KBUILD_OUTPUT := $(O)
 endif
+KBUILD_OUTPUT ?= out/
 
 # That's our default target when none is given on the command line
 PHONY := _all
