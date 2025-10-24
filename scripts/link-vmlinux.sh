@@ -47,18 +47,16 @@ info()
 #
 archive_builtin()
 {
-	if [ -n "${CONFIG_THIN_ARCHIVES}" ]; then
-		info AR built-in.o
-		rm -f built-in.o;
-		${AR} rcsT${KBUILD_ARFLAGS} built-in.o			\
-					${KBUILD_VMLINUX_INIT}		\
-					${KBUILD_VMLINUX_MAIN}
+	info AR built-in.o
+	rm -f built-in.o;
+	${AR} rcsT${KBUILD_ARFLAGS} built-in.o			\
+				${KBUILD_VMLINUX_INIT}		\
+				${KBUILD_VMLINUX_MAIN}
 
-		if [ -n "${CONFIG_LTO_CLANG}" ]; then
-			mv -f built-in.o built-in.o.tmp
-			${LLVM_AR} rcsT${KBUILD_ARFLAGS} built-in.o $(${AR} t built-in.o.tmp)
-			rm -f built-in.o.tmp
-		fi
+	if [ -n "${CONFIG_LTO_CLANG}" ]; then
+		mv -f built-in.o built-in.o.tmp
+		${LLVM_AR} rcsT${KBUILD_ARFLAGS} built-in.o $(${AR} t built-in.o.tmp)
+		rm -f built-in.o.tmp
 	fi
 }
 
@@ -91,16 +89,7 @@ modversions()
 # ${1} output file
 modpost_link()
 {
-	local objects
-
-	if [ -n "${CONFIG_THIN_ARCHIVES}" ]; then
-		objects="--whole-archive built-in.o"
-	else
-		objects="${KBUILD_VMLINUX_INIT}				\
-			--start-group					\
-			${KBUILD_VMLINUX_MAIN}				\
-			--end-group"
-	fi
+	local objects="--whole-archive built-in.o"
 
 	if [ -n "${CONFIG_LTO_CLANG}" ]; then
 		# This might take a while, so indicate that we're doing
@@ -143,7 +132,7 @@ vmlinux_link()
 			ldflags="${LDFLAGS_FINAL_vmlinux} ${LDFLAGS_vmlinux}"
 		fi
 
-		if [ -n "${CONFIG_THIN_ARCHIVES}" -a -z "${CONFIG_LTO_CLANG}" ]; then
+		if [ -z "${CONFIG_LTO_CLANG}" ]; then
 			objects="--whole-archive built-in.o ${1}"
 		else
 			objects="${KBUILD_VMLINUX_INIT}			\
@@ -155,15 +144,7 @@ vmlinux_link()
 
 		${ld} ${ldflags} -o ${2} -T ${lds} ${objects}
 	else
-		if [ -n "${CONFIG_THIN_ARCHIVES}" ]; then
-			objects="-Wl,--whole-archive built-in.o ${1}"
-		else
-			objects="${KBUILD_VMLINUX_INIT}			\
-				-Wl,--start-group			\
-				${KBUILD_VMLINUX_MAIN}			\
-				-Wl,--end-group				\
-				${1}"
-		fi
+		objects="-Wl,--whole-archive built-in.o ${1}"
 
 		${CC} ${CFLAGS_vmlinux} -o ${2}				\
 			-Wl,-T,${lds}					\
