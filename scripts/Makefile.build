@@ -42,6 +42,8 @@ include $(or $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Makefile)
 include scripts/Makefile.lib
 
 # Do not include host rules unless needed
+# $(sort ...) is used here to remove duplicated words and excessive spaces.
+hostprogs-y := $(sort $(hostprogs-y))
 ifneq ($(hostprogs-y),)
 include scripts/Makefile.host
 endif
