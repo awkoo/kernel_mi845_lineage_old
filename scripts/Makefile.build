@@ -4,8 +4,8 @@
 
 src := $(obj)
 
-PHONY := __build
-__build:
+PHONY := $(obj)/
+$(obj)/:
 
 # Init all relevant variables used in kbuild files so
 # 1) they have correct type
@@ -88,7 +88,7 @@ modorder-target := $(obj)/modules.order
 
 # We keep a list of all modules in $(MODVERDIR)
 
-__build: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y)) \
+$(obj)/: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y)) \
 	 $(if $(KBUILD_MODULES),$(obj-m) $(modorder-target)) \
 	 $(subdir-ym) $(always)
 	@:
