@@ -66,8 +66,8 @@ jobs:
           MAKE_ARGS:
             -sj$(nproc --all) CC="ccache clang"
           CONFIG_FILES:
-            vendor/xiaomi/mi845_defconfig
-            vendor/xiaomi/${{ matrix.device }}.config
+            mi845_defconfig
+            ${{ matrix.device }}.config
         run: |
           export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
           make ${{ env.MAKE_ARGS }} ${{ env.CONFIG_FILES }} all
