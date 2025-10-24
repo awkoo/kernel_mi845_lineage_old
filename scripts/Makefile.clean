@@ -37,7 +37,6 @@ subdir-ymn	:= $(addprefix $(obj)/,$(subdir-ymn))
 
 __clean-files	:= $(extra-y) $(extra-m) $(extra-)       \
 		   $(always) $(targets) $(clean-files)   \
-		   $(host-progs)                         \
 		   $(hostprogs-y) $(hostprogs-)
 
 __clean-files   := $(filter-out $(no-clean-files), $(__clean-files))
