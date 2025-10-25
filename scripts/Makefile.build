@@ -457,7 +457,7 @@ ifdef CONFIG_LTO_CLANG
   # rebuild the symbol table with llvm-ar to include IR files
   update_lto_symtable = ;				\
 	mv -f $@ $@.tmp;				\
-	$(LLVM_AR) rcsT$(KBUILD_ARFLAGS) $@ 		\
+	$(AR) rcsT$(KBUILD_ARFLAGS) $@ 			\
 		$$($(AR) t $@.tmp); 			\
 	rm -f $@.tmp
 endif
