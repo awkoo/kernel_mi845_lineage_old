@@ -61,23 +61,7 @@ KSYM(__kcrctab_\name):
 #undef __put
 
 #if defined(__KSYM_DEPS__)
-
 #define __EXPORT_SYMBOL(sym, val, sec)	=== __KSYM_##sym ===
-
-#elif defined(CONFIG_TRIM_UNUSED_KSYMS)
-
-#include <linux/kconfig.h>
-#include <generated/autoksyms.h>
-
-#define __EXPORT_SYMBOL(sym, val, sec)				\
-	__cond_export_sym(sym, val, sec, __is_defined(__KSYM_##sym))
-#define __cond_export_sym(sym, val, sec, conf)			\
-	___cond_export_sym(sym, val, sec, conf)
-#define ___cond_export_sym(sym, val, sec, enabled)		\
-	__cond_export_sym_##enabled(sym, val, sec)
-#define __cond_export_sym_1(sym, val, sec) ___EXPORT_SYMBOL sym, val, sec
-#define __cond_export_sym_0(sym, val, sec) /* nothing */
-
 #else
 #define __EXPORT_SYMBOL(sym, val, sec) ___EXPORT_SYMBOL sym, val, sec
 #endif

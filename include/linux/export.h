@@ -75,20 +75,6 @@ extern struct module __this_module;
  * in scripts/Kbuild.include).
  */
 #define __EXPORT_SYMBOL(sym, sec)	=== __KSYM_##sym ===
-
-#elif defined(CONFIG_TRIM_UNUSED_KSYMS)
-
-#include <generated/autoksyms.h>
-
-#define __EXPORT_SYMBOL(sym, sec)				\
-	__cond_export_sym(sym, sec, __is_defined(__KSYM_##sym))
-#define __cond_export_sym(sym, sec, conf)			\
-	___cond_export_sym(sym, sec, conf)
-#define ___cond_export_sym(sym, sec, enabled)			\
-	__cond_export_sym_##enabled(sym, sec)
-#define __cond_export_sym_1(sym, sec) ___EXPORT_SYMBOL(sym, sec)
-#define __cond_export_sym_0(sym, sec) /* nothing */
-
 #else
 #define __EXPORT_SYMBOL ___EXPORT_SYMBOL
 #endif
