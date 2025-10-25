@@ -123,35 +123,25 @@ vmlinux_link()
 	local lds="${objtree}/${KBUILD_LDS}"
 	local objects
 
-	if [ "${SRCARCH}" != "um" ]; then
-		local ld=${LD}
-		local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
+	local ld=${LD}
+	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
 
-		if [ -n "${LDFINAL_vmlinux}" ]; then
-			ld=${LDFINAL_vmlinux}
-			ldflags="${LDFLAGS_FINAL_vmlinux} ${LDFLAGS_vmlinux}"
-		fi
-
-		if [ -z "${CONFIG_LTO_CLANG}" ]; then
-			objects="--whole-archive built-in.o ${1}"
-		else
-			objects="${KBUILD_VMLINUX_INIT}			\
-				--start-group				\
-				${KBUILD_VMLINUX_MAIN}			\
-				--end-group				\
-				${1}"
-		fi
-
-		${ld} ${ldflags} -o ${2} -T ${lds} ${objects}
-	else
-		objects="-Wl,--whole-archive built-in.o ${1}"
-
-		${CC} ${CFLAGS_vmlinux} -o ${2}				\
-			-Wl,-T,${lds}					\
-			${objects}					\
-			-lutil -lrt -lpthread
-		rm -f linux
+	if [ -n "${LDFINAL_vmlinux}" ]; then
+		ld=${LDFINAL_vmlinux}
+		ldflags="${LDFLAGS_FINAL_vmlinux} ${LDFLAGS_vmlinux}"
 	fi
+
+	if [ -z "${CONFIG_LTO_CLANG}" ]; then
+		objects="--whole-archive built-in.o ${1}"
+	else
+		objects="${KBUILD_VMLINUX_INIT}			\
+			--start-group				\
+			${KBUILD_VMLINUX_MAIN}			\
+			--end-group				\
+			${1}"
+	fi
+
+	${ld} ${ldflags} -o ${2} -T ${lds} ${objects}
 }
 
 # Create ${2} .o file with all symbols from the ${1} object file
