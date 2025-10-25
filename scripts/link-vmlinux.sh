@@ -122,18 +122,12 @@ vmlinux_link()
 {
 	local lds="${objtree}/${KBUILD_LDS}"
 	local objects
-
-	local ld=${LD}
 	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
-
-	if [ -n "${LDFINAL_vmlinux}" ]; then
-		ld=${LDFINAL_vmlinux}
-		ldflags="${LDFLAGS_FINAL_vmlinux} ${LDFLAGS_vmlinux}"
-	fi
 
 	if [ -z "${CONFIG_LTO_CLANG}" ]; then
 		objects="--whole-archive built-in.o ${1}"
 	else
+		ldflags="${LDFLAGS_vmlinux}"
 		objects="${KBUILD_VMLINUX_INIT}			\
 			--start-group				\
 			${KBUILD_VMLINUX_MAIN}			\
@@ -141,7 +135,7 @@ vmlinux_link()
 			${1}"
 	fi
 
-	${ld} ${ldflags} -o ${2} -T ${lds} ${objects}
+	${LD} ${ldflags} -o ${2} -T ${lds} ${objects}
 }
 
 # Create ${2} .o file with all symbols from the ${1} object file
