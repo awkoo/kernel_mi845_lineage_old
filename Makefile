@@ -175,6 +175,8 @@ ifndef KBUILD_CHECKSRC
   KBUILD_CHECKSRC = 0
 endif
 
+export KBUILD_CHECKSRC
+
 # Use make M=dir or set the environment variable KBUILD_EXTMOD to specify the
 # directory of external module to build. Setting M= takes precedence.
 ifeq ("$(origin M)", "command line")
@@ -184,7 +186,8 @@ endif
 $(if $(word 2, $(KBUILD_EXTMOD)), \
 	$(error building multiple external modules is not supported))
 
-export KBUILD_CHECKSRC KBUILD_EXTMOD
+export KBUILD_EXTMOD
+
 # If building an external module we do not care about the all: rule
 # but instead _all depend on modules
 PHONY += all
