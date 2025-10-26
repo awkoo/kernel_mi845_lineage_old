@@ -28,6 +28,10 @@
 # Error out on error
 set -e
 
+is_enabled() {
+	grep -q "^$1=y" include/config/auto.conf
+}
+
 # Nice output in kbuild format
 # Will be supressed by "make -s"
 info()
@@ -81,19 +85,19 @@ kallsyms()
 	info KSYM ${2}
 	local kallsymopt;
 
-	if [ -n "${CONFIG_HAVE_UNDERSCORE_SYMBOL_PREFIX}" ]; then
+	if is_enabled CONFIG_HAVE_UNDERSCORE_SYMBOL_PREFIX; then
 		kallsymopt="${kallsymopt} --symbol-prefix=_"
 	fi
 
-	if [ -n "${CONFIG_KALLSYMS_ALL}" ]; then
+	if is_enabled CONFIG_KALLSYMS_ALL; then
 		kallsymopt="${kallsymopt} --all-symbols"
 	fi
 
-	if [ -n "${CONFIG_KALLSYMS_ABSOLUTE_PERCPU}" ]; then
+	if is_enabled CONFIG_KALLSYMS_ABSOLUTE_PERCPU; then
 		kallsymopt="${kallsymopt} --absolute-percpu"
 	fi
 
-	if [ -n "${CONFIG_KALLSYMS_BASE_RELATIVE}" ]; then
+	if is_enabled CONFIG_KALLSYMS_BASE_RELATIVE; then
 		kallsymopt="${kallsymopt} --base-relative"
 	fi
 
@@ -161,26 +165,6 @@ if [ "$1" = "clean" ]; then
 	exit 0
 fi
 
-# We need access to CONFIG_ symbols
-case "${KCONFIG_CONFIG}" in
-*/*)
-	. "${KCONFIG_CONFIG}"
-	;;
-*)
-	# Force using a file from the current directory
-	. "./${KCONFIG_CONFIG}"
-esac
-
-# Update version
-info GEN .version
-if [ ! -r .version ]; then
-	rm -f .version;
-	echo 1 >.version;
-else
-	mv .version .old_version;
-	expr 0$(cat .old_version) + 1 >.version;
-fi;
-
 archive_builtin built-in.o
 
 #link vmlinux.o
@@ -194,7 +178,7 @@ ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init GCC_PLUGINS_CFLAGS="${GC
 
 kallsymso=""
 kallsyms_vmlinux=""
-if [ -n "${CONFIG_KALLSYMS}" ]; then
+if is_enabled CONFIG_KALLSYMS; then
 
 	# kallsyms support
 	# Generate section listing all symbols and add it into vmlinux
@@ -240,7 +224,7 @@ fi
 info LD vmlinux
 vmlinux_link vmlinux "${kallsymso}"
 
-if [ -n "${CONFIG_BUILDTIME_EXTABLE_SORT}" ]; then
+if is_enabled CONFIG_BUILDTIME_EXTABLE_SORT; then
 	info SORTEX vmlinux
 	sortextable vmlinux
 fi
@@ -249,7 +233,7 @@ info SYSMAP System.map
 mksysmap vmlinux System.map
 
 # step a (see comment above)
-if [ -n "${CONFIG_KALLSYMS}" ]; then
+if is_enabled CONFIG_KALLSYMS; then
 	mksysmap ${kallsyms_vmlinux} .tmp_System.map
 
 	if ! cmp -s System.map .tmp_System.map; then
@@ -259,5 +243,3 @@ if [ -n "${CONFIG_KALLSYMS}" ]; then
 	fi
 fi
 
-# We made a new kernel - delete old version file
-rm -f .old_version
