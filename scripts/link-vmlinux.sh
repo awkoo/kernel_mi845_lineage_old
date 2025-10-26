@@ -43,36 +43,36 @@ info()
 #
 # Traditional incremental style of link does not require this step
 #
-# built-in.o output file
+# ${1} output file
 #
 archive_builtin()
 {
-	info AR built-in.o
-	rm -f built-in.o;
-	${AR} rcsT${KBUILD_ARFLAGS} built-in.o			\
-				${KBUILD_VMLINUX_INIT}		\
-				${KBUILD_VMLINUX_MAIN}
+	info AR ${1}
+	rm -f ${1};
+	${AR} rcsT${KBUILD_ARFLAGS} ${1} \
+		${KBUILD_VMLINUX_INIT} \
+		${KBUILD_VMLINUX_MAIN}
 }
 
 # Link of vmlinux.o used for section mismatch analysis
 # ${1} output file
+# ${2} source file
 modpost_link()
 {
-	local objects="--whole-archive built-in.o"
-	info LD vmlinux.o
-	${LD} ${LDFLAGS} -r -o ${1} ${objects}
+	info LD ${1}
+	${LD} ${LDFLAGS} -r -o ${1} --whole-archive ${2} --no-whole-archive
 }
 
 # Link of vmlinux
-# ${1} - optional extra .o files
-# ${2} - output file
+# ${1} - output file
+# ${2} - optional extra .o files
 vmlinux_link()
 {
 	local lds="${objtree}/${KBUILD_LDS}"
 	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
-	local objects="--whole-archive built-in.o ${1}"
+	local objects="built-in.o ${2}"
 
-	${LD} ${ldflags} -o ${2} -T ${lds} ${objects}
+	${LD} ${ldflags} -o ${1} -T ${lds} --whole-archive ${objects} --no-whole-archive
 }
 
 # Create ${2} .o file with all symbols from the ${1} object file
@@ -208,10 +208,10 @@ else
 	expr 0$(cat .old_version) + 1 >.version;
 fi;
 
-archive_builtin
+archive_builtin built-in.o
 
 #link vmlinux.o
-modpost_link vmlinux.o
+modpost_link vmlinux.o built-in.o
 
 # modpost vmlinux.o to check for section mismatches
 ${MAKE} -f "${srctree}/scripts/Makefile.modpost" vmlinux.o
@@ -255,11 +255,11 @@ if [ -n "${CONFIG_KALLSYMS}" ]; then
 	kallsyms_vmlinux=.tmp_vmlinux2
 
 	# step 1
-	vmlinux_link "" .tmp_vmlinux1
+	vmlinux_link .tmp_vmlinux1 ""
 	kallsyms .tmp_vmlinux1 .tmp_kallsyms1.o
 
 	# step 2
-	vmlinux_link .tmp_kallsyms1.o .tmp_vmlinux2
+	vmlinux_link .tmp_vmlinux2 .tmp_kallsyms1.o
 	kallsyms .tmp_vmlinux2 .tmp_kallsyms2.o
 
 	# step 2a
@@ -267,7 +267,7 @@ if [ -n "${CONFIG_KALLSYMS}" ]; then
 		kallsymso=.tmp_kallsyms3.o
 		kallsyms_vmlinux=.tmp_vmlinux3
 
-		vmlinux_link .tmp_kallsyms2.o .tmp_vmlinux3
+		vmlinux_link .tmp_vmlinux3 .tmp_kallsyms2.o
 
 		kallsyms .tmp_vmlinux3 .tmp_kallsyms3.o
 	fi
@@ -290,7 +290,7 @@ if [ ! -z ${RTIC_MP_O} ]; then
 fi
 
 info LD vmlinux
-vmlinux_link "${kallsymso}" vmlinux
+vmlinux_link vmlinux "${kallsymso}"
 
 if [ -n "${CONFIG_BUILDTIME_EXTABLE_SORT}" ]; then
 	info SORTEX vmlinux
