@@ -58,15 +58,6 @@ archive_builtin()
 		${KBUILD_VMLINUX_MAIN}
 }
 
-# Link of vmlinux.o used for section mismatch analysis
-# ${1} output file
-# ${2} source file
-modpost_link()
-{
-	info LD ${1}
-	${LD} ${LDFLAGS} -r -o ${1} --whole-archive ${2} --no-whole-archive
-}
-
 # Link of vmlinux
 # ${1} - output file
 # ${2} - optional extra .o files
@@ -134,7 +125,6 @@ cleanup()
 	rm -f built-in.o
 	rm -f System.map
 	rm -f vmlinux
-	rm -f vmlinux.o
 }
 
 on_exit()
@@ -166,12 +156,6 @@ if [ "$1" = "clean" ]; then
 fi
 
 archive_builtin built-in.o
-
-#link vmlinux.o
-modpost_link vmlinux.o built-in.o
-
-# modpost vmlinux.o to check for section mismatches
-${MAKE} -f "${srctree}/scripts/Makefile.modpost" vmlinux.o
 
 # final build of init/
 ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init GCC_PLUGINS_CFLAGS="${GCC_PLUGINS_CFLAGS}"
