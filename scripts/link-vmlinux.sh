@@ -63,11 +63,11 @@ archive_builtin()
 # ${2} - optional extra .o files
 vmlinux_link()
 {
-	local lds="${objtree}/${KBUILD_LDS}"
 	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
+	ldflags="${ldflags} --script=${objtree}/${KBUILD_LDS}"
 	local objects="built-in.o ${2}"
 
-	${LD} ${ldflags} -o ${1} -T ${lds} --whole-archive ${objects} --no-whole-archive
+	${LD} ${ldflags} -o ${1} --whole-archive ${objects} --no-whole-archive
 }
 
 # Create ${2} .o file with all symbols from the ${1} object file
