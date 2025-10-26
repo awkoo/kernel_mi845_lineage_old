@@ -252,11 +252,23 @@ export KCONFIG_CONFIG
 # SHELL used by kbuild
 CONFIG_SHELL := sh
 
+HOST_LFS_CFLAGS  := $(shell getconf LFS_CFLAGS 2>/dev/null)
+HOST_LFS_LDFLAGS := $(shell getconf LFS_LDFLAGS 2>/dev/null)
+HOST_LFS_LIBS    := $(shell getconf LFS_LIBS 2>/dev/null)
+
 HOSTCC       = clang
 HOSTCXX      = clang++
-HOSTCFLAGS   := -Wall -Wmissing-prototypes -Wstrict-prototypes \
-		-O3 -fomit-frame-pointer -std=gnu11
-HOSTCXXFLAGS = -O3
+
+KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
+                         -O3 -fomit-frame-pointer -std=gnu11
+KBUILD_USERCFLAGS     := $(KBUILD_USERHOSTCFLAGS) $(USERCFLAGS)
+KBUILD_USERLDFLAGS    := $(USERLDFLAGS)
+
+KBUILD_HOSTCFLAGS     := $(KBUILD_USERHOSTCFLAGS) $(HOST_LFS_CFLAGS) \
+                         $(HOSTCFLAGS)
+KBUILD_HOSTCXXFLAGS   := -Wall -O3 $(HOST_LFS_CFLAGS) $(HOSTCXXFLAGS) \
+KBUILD_HOSTLDFLAGS    := $(HOST_LFS_LDFLAGS) $(HOSTLDFLAGS)
+KBUILD_HOSTLDLIBS     := $(HOST_LFS_LIBS) $(HOSTLDLIBS)
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
