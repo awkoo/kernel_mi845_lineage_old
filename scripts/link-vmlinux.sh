@@ -52,37 +52,6 @@ archive_builtin()
 	${AR} rcsT${KBUILD_ARFLAGS} built-in.o			\
 				${KBUILD_VMLINUX_INIT}		\
 				${KBUILD_VMLINUX_MAIN}
-
-	if [ -n "${CONFIG_LTO_CLANG}" ]; then
-		mv -f built-in.o built-in.o.tmp
-		${AR} rcsT${KBUILD_ARFLAGS} built-in.o $(${AR} t built-in.o.tmp)
-		rm -f built-in.o.tmp
-	fi
-}
-
-# If CONFIG_LTO_CLANG is selected, collect generated symbol versions into
-# .tmp_symversions
-modversions()
-{
-	if [ -z "${CONFIG_LTO_CLANG}" ]; then
-		return
-	fi
-
-	if [ -z "${CONFIG_MODVERSIONS}" ]; then
-		return
-	fi
-
-	rm -f .tmp_symversions
-
-	for a in built-in.o ${KBUILD_VMLINUX_LIBS}; do
-		for o in $(${AR} t $a); do
-			if [ -f ${o}.symversions ]; then
-				cat ${o}.symversions >> .tmp_symversions
-			fi
-		done
-	done
-
-	echo "-T .tmp_symversions"
 }
 
 # Link of vmlinux.o used for section mismatch analysis
@@ -90,29 +59,8 @@ modversions()
 modpost_link()
 {
 	local objects="--whole-archive built-in.o"
-
-	if [ -n "${CONFIG_LTO_CLANG}" ]; then
-		# This might take a while, so indicate that we're doing
-		# an LTO link
-		info LTO vmlinux.o
-	else
-		info LD vmlinux.o
-	fi
-
-	${LD} ${LDFLAGS} -r -o ${1} $(modversions) ${objects}
-}
-
-# If CONFIG_LTO_CLANG is selected, we postpone running recordmcount until
-# we have compiled LLVM IR to an object file.
-recordmcount()
-{
-	if [ -z "${CONFIG_LTO_CLANG}" ]; then
-		return
-	fi
-
-	if [ -n "${CONFIG_FTRACE_MCOUNT_RECORD}" ]; then
-		scripts/recordmcount ${RECORDMCOUNT_FLAGS} $*
-	fi
+	info LD vmlinux.o
+	${LD} ${LDFLAGS} -r -o ${1} ${objects}
 }
 
 # Link of vmlinux
@@ -121,19 +69,8 @@ recordmcount()
 vmlinux_link()
 {
 	local lds="${objtree}/${KBUILD_LDS}"
-	local objects
 	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
-
-	if [ -z "${CONFIG_LTO_CLANG}" ]; then
-		objects="--whole-archive built-in.o ${1}"
-	else
-		ldflags="${LDFLAGS_vmlinux}"
-		objects="${KBUILD_VMLINUX_INIT}			\
-			--start-group				\
-			${KBUILD_VMLINUX_MAIN}			\
-			--end-group				\
-			${1}"
-	fi
+	local objects="--whole-archive built-in.o ${1}"
 
 	${LD} ${ldflags} -o ${2} -T ${lds} ${objects}
 }
@@ -281,16 +218,6 @@ ${MAKE} -f "${srctree}/scripts/Makefile.modpost" vmlinux.o
 
 # final build of init/
 ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init GCC_PLUGINS_CFLAGS="${GCC_PLUGINS_CFLAGS}"
-
-if [ -n "${CONFIG_LTO_CLANG}" ]; then
-	# Re-use vmlinux.o, so we can avoid the slow LTO link step in
-	# vmlinux_link
-	KBUILD_VMLINUX_INIT=
-	KBUILD_VMLINUX_MAIN=vmlinux.o
-
-	# Call recordmcount if needed
-	recordmcount vmlinux.o
-fi
 
 # Generate RTIC MP placeholder compile unit of the correct size
 # and add it to the list of link objects
