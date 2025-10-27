@@ -14,7 +14,7 @@
 #   |   +--< init/version.o + more
 #   |
 #   +--< $(KBUILD_VMLINUX_MAIN)
-#   |    +--< drivers/built-in.o mm/built-in.o + more
+#   |    +--< drivers/built-in.a mm/built-in.a + more
 #   |
 #   +-< ${kallsymso} (see description in KALLSYMS section)
 #
@@ -65,7 +65,7 @@ vmlinux_link()
 {
 	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
 	ldflags="${ldflags} --script=${objtree}/${KBUILD_LDS}"
-	local objects="built-in.o ${2}"
+	local objects="built-in.a ${2}"
 
 	${LD} ${ldflags} -o ${1} --whole-archive ${objects} --no-whole-archive
 }
@@ -122,7 +122,7 @@ cleanup()
 	rm -f .tmp_version
 	rm -f .tmp_symversions
 	rm -f .tmp_vmlinux*
-	rm -f built-in.o
+	rm -f built-in.a
 	rm -f System.map
 	rm -f vmlinux
 }
@@ -155,7 +155,7 @@ if [ "$1" = "clean" ]; then
 	exit 0
 fi
 
-archive_builtin built-in.o
+archive_builtin built-in.a
 
 # final build of init/
 ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init
