@@ -412,15 +412,11 @@ $(sort $(subdir-obj-y)): $(subdir-ym) ;
 #
 ifdef builtin-target
 
-cmd_make_builtin = rm -f $@; $(AR) rcSTP$(KBUILD_ARFLAGS)
-cmd_make_empty_builtin = rm -f $@; $(AR) rcSTP$(KBUILD_ARFLAGS)
+cmd_ar_builtin = rm -f $@; $(AR) rcSTP$(KBUILD_ARFLAGS)
 quiet_cmd_link_o_target = AR      $@
-
-# If the list of objects to link is empty, just create an empty built-in
-cmd_link_o_target = $(if $(strip $(obj-y)),\
-		      $(cmd_make_builtin) $@ $(filter $(obj-y), $^) \
-		      $(cmd_secanalysis),\
-		      $(cmd_make_empty_builtin) $@)
+      cmd_link_o_target = $(if $(strip $(obj-y)),\
+		      $(cmd_ar_builtin) $@ $(filter $(obj-y), $^) $(cmd_secanalysis),\
+		      $(cmd_ar_builtin) $@)
 
 $(builtin-target): $(obj-y) FORCE
 	$(call if_changed,link_o_target)
