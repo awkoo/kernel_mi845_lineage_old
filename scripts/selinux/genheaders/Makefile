@@ -1,4 +1,4 @@
 hostprogs-y	:= genheaders
-HOST_EXTRACFLAGS += -Isecurity/selinux/include
+HOST_EXTRACFLAGS += -I$(srctree)/security/selinux/include
 
 always		:= $(hostprogs-y)
