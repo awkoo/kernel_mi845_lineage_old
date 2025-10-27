@@ -51,21 +51,17 @@ host-cxxobjs	:= $(addprefix $(obj)/,$(host-cxxobjs))
 #####
 # Handle options to gcc. Support building with separate output directory
 
-_hostc_flags	= $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) \
+hostc_flags	= -Wp,-MMD,$(depfile) \
+		  $(KBUILD_HOSTCFLAGS) $(HOST_EXTRACFLAGS) \
 		  $(HOSTCFLAGS_$(basetarget).o)
-_hostcxx_flags	= $(KBUILD_HOSTCXXFLAGS) $(HOST_EXTRACXXFLAGS) \
+hostcxx_flags	= -Wp,-MMD,$(depfile) \
+		  $(KBUILD_HOSTCXXFLAGS) $(HOST_EXTRACXXFLAGS) \
 		  $(HOSTCXXFLAGS_$(basetarget).o)
 
-ifeq ($(KBUILD_SRC),)
-__hostc_flags	= $(_hostc_flags)
-__hostcxx_flags	= $(_hostcxx_flags)
-else
-__hostc_flags	= -I$(obj) $(call flags,_hostc_flags)
-__hostcxx_flags	= -I$(obj) $(call flags,_hostcxx_flags)
+ifneq ($(KBUILD_SRC),)
+hostc_flags	+= -I$(objtree)/$(obj)
+hostcxx_flags	+= -I$(objtree)/$(obj)
 endif
-
-hostc_flags	= -Wp,-MD,$(depfile) $(__hostc_flags)
-hostcxx_flags	= -Wp,-MD,$(depfile) $(__hostcxx_flags)
 
 #####
 # Compile programs on the host
