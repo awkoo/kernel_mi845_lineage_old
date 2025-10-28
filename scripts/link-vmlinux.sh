@@ -49,6 +49,8 @@ vmlinux_link()
 	local output=${1}
 	local lds="${objtree}/${KBUILD_LDS}"
 
+	info LD ${output}
+
 	# skip output file argument
 	shift
 
@@ -203,7 +205,6 @@ if is_enabled CONFIG_KALLSYMS; then
 	fi
 fi
 
-info LD vmlinux
 vmlinux_link vmlinux "${kallsymso}"
 
 if is_enabled CONFIG_BUILDTIME_EXTABLE_SORT; then
