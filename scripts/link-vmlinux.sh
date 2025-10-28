@@ -193,10 +193,12 @@ if is_enabled CONFIG_KALLSYMS; then
 	#     ${kallsymso}.
 
 	kallsyms_step 1
+	size1=$(stat -c "%s" ${kallsymso})
 	kallsyms_step 2
+	size2=$(stat -c "%s" ${kallsymso})
 
 	# step 3
-	if [ -n "${KALLSYMS_EXTRA_PASS}" ]; then
+	if [ $size1 -ne $size2 ] || [ -n "${KALLSYMS_EXTRA_PASS}" ]; then
 		kallsyms_step 3
 	fi
 fi
