@@ -95,6 +95,18 @@ kallsyms()
 	${CC} ${aflags} -c -o ${2} ${afile}
 }
 
+# Perform one step in kallsyms generation, including temporary linking of
+# vmlinux.
+kallsyms_step()
+{
+	kallsymso_prev=${kallsymso}
+	kallsyms_vmlinux=.tmp_vmlinux.kallsyms${1}
+	kallsymso=${kallsyms_vmlinux}.o
+
+	vmlinux_link ${kallsyms_vmlinux} "${kallsymso_prev}"
+	kallsyms ${kallsyms_vmlinux} ${kallsymso}
+}
+
 # Create map file with all symbols from ${1}
 # See mksymap for additional details
 mksysmap()
@@ -153,6 +165,7 @@ fi
 ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init
 
 kallsymso=""
+kallsymso_prev=""
 kallsyms_vmlinux=""
 if is_enabled CONFIG_KALLSYMS; then
 
@@ -167,33 +180,24 @@ if is_enabled CONFIG_KALLSYMS; then
 	#     the right size, but due to the added section, some
 	#     addresses have shifted.
 	#     From here, we generate a correct .tmp_kallsyms2.o
-	# 2a) We may use an extra pass as this has been necessary to
-	#     woraround some alignment related bugs.
-	#     KALLSYMS_EXTRA_PASS=1 is used to trigger this.
-	# 3)  The correct ${kallsymso} is linked into the final vmlinux.
+	# 3)  That link may have expanded the kernel image enough that
+	#     more linker branch stubs / trampolines had to be added, which
+	#     introduces new names, which further expands kallsyms. Do another
+	#     pass if that is the case. In theory it's possible this results
+	#     in even more stubs, but unlikely.
+	#     KALLSYMS_EXTRA_PASS=1 may also used to debug or work around
+	#     other bugs.
+	# 4)  The correct ${kallsymso} is linked into the final vmlinux.
 	#
 	# a)  Verify that the System.map from vmlinux matches the map from
 	#     ${kallsymso}.
 
-	kallsymso=.tmp_kallsyms2.o
-	kallsyms_vmlinux=.tmp_vmlinux2
+	kallsyms_step 1
+	kallsyms_step 2
 
-	# step 1
-	vmlinux_link .tmp_vmlinux1 ""
-	kallsyms .tmp_vmlinux1 .tmp_kallsyms1.o
-
-	# step 2
-	vmlinux_link .tmp_vmlinux2 .tmp_kallsyms1.o
-	kallsyms .tmp_vmlinux2 .tmp_kallsyms2.o
-
-	# step 2a
+	# step 3
 	if [ -n "${KALLSYMS_EXTRA_PASS}" ]; then
-		kallsymso=.tmp_kallsyms3.o
-		kallsyms_vmlinux=.tmp_vmlinux3
-
-		vmlinux_link .tmp_vmlinux3 .tmp_kallsyms2.o
-
-		kallsyms .tmp_vmlinux3 .tmp_kallsyms3.o
+		kallsyms_step 3
 	fi
 fi
 
