@@ -41,33 +41,27 @@ info()
 	fi
 }
 
-# Thin archive build here makes a final archive with
-# symbol table and indexes from vmlinux objects, which can be
-# used as input to linker.
-#
-# Traditional incremental style of link does not require this step
-#
-# ${1} output file
-#
-archive_builtin()
-{
-	info AR ${1}
-	rm -f ${1};
-	${AR} rcsT${KBUILD_ARFLAGS} ${1} \
-		${KBUILD_VMLINUX_INIT} \
-		${KBUILD_VMLINUX_MAIN}
-}
-
 # Link of vmlinux
 # ${1} - output file
 # ${2} - optional extra .o files
 vmlinux_link()
 {
-	local ldflags="${LDFLAGS} ${LDFLAGS_vmlinux}"
-	ldflags="${ldflags} --script=${objtree}/${KBUILD_LDS}"
-	local objects="built-in.a ${2}"
+	local output=${1}
+	local lds="${objtree}/${KBUILD_LDS}"
 
-	${LD} ${ldflags} -o ${1} --whole-archive ${objects} --no-whole-archive
+	# skip output file argument
+	shift
+
+	${LD} ${LDFLAGS} ${LDFLAGS_vmlinux} \
+		-o ${output} \
+		-T ${lds} \
+		--whole-archive \
+		${KBUILD_VMLINUX_OBJS} \
+		--no-whole-archive \
+		--start-group \
+		${KBUILD_VMLINUX_LIBS} \
+		--end-group \
+		${@}
 }
 
 # Create ${2} .o file with all symbols from the ${1} object file
@@ -154,8 +148,6 @@ if [ "$1" = "clean" ]; then
 	cleanup
 	exit 0
 fi
-
-archive_builtin built-in.a
 
 # final build of init/
 ${MAKE} -f "${srctree}/scripts/Makefile.build" obj=init
